@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>IleZaDom - Weryfikator Inżynierski</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: #f4f7f6; }
+        #sidebar { width: 350px; padding: 20px; background: white; box-shadow: 2px 0 5px rgba(0,0,0,0.1); z-index: 1000; }
+        #map { flex-grow: 1; }
+        .house-card { border: 2px solid #e0e0e0; padding: 10px; margin-bottom: 10px; cursor: pointer; border-radius: 8px; transition: 0.3s; }
+        .house-card.active { border-color: #2c3e50; background: #ecf0f1; }
+        h2 { color: #2c3e50; font-size: 1.2rem; }
+        .info-box { font-size: 0.9rem; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h2>IleZaDom.pl</h2>
+    <p><i>Okiem Inżyniera</i></p>
+    <hr>
+    <label>Twój budżet całkowity (PLN):</label>
+    <input type="number" id="budget" value="600000" style="width: 100%; padding: 8px; margin: 10px 0;">
+    
+    <p>Wybierz typ domu:</p>
+    <div class="house-card active" onclick="selectHouse(350000, 'Kompakt 70m2', this)">
+        <strong>Kompakt 70m²</strong><br>Koszt budowy: ok. 350 tys. zł
+    </div>
+    <div class="house-card" onclick="selectHouse(500000, 'Stodoła 100m2', this)">
+        <strong>Stodoła 100m²</strong><br>Koszt budowy: ok. 500 tys. zł
+    </div>
+    <div class="house-card" onclick="selectHouse(650000, 'Klasyk 130m2', this)">
+        <strong>Klasyk 130m²</strong><br>Koszt budowy: ok. 650 tys. zł
+    </div>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    let map = L.map('map').setView([51.75, 19.45], 9); // Wyśrodkowane na Łódź
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    let buildCost = 350000;
+    let selectedHouseName = "Kompakt 70m2";
+
+    function selectHouse(cost, name, element) {
+        buildCost = cost;
+        selectedHouseName = name;
+        document.querySelectorAll('.house-card').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    // Prosta "Lupa" - Tooltip pod kursorem
+    let popup = L.popup();
+    map.on('mousemove', function(e) {
+        let budget = document.getElementById('budget').value;
+        let moneyLeftForLand = budget - buildCost;
+        
+        // Symulacja danych (później podepniemy Twój arkusz)
+        let distToLodz = (Math.random() * 50).toFixed(1); 
+        let distToForest = (Math.random() * 5).toFixed(1);
+
+        let status = moneyLeftForLand > 100000 ? "<span style='color:green'>MOŻLIWE</span>" : "<span style='color:red'>MAŁY BUDŻET</span>";
+
+        popup.setLatLng(e.latlng)
+            .setContent(`
+                <div class="info-box">
+                    <strong>${selectedHouseName}</strong><br>
+                    Status: ${status}<br>
+                    Na działkę zostaje: <b>${moneyLeftForLand} zł</b><br>
+                    <hr>
+                    🚗 Dojazd do Łodzi: ${distToLodz} km<br>
+                    🌲 Las: ${distToForest} km<br>
+                    🏫 Szkoła: 1.2 km
+                </div>
+            `)
+            .openOn(map);
+    });
+</script>
+</body>
+</html>
